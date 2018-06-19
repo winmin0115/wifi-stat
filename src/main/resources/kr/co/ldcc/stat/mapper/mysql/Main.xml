@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.co.ldcc.stat.dao.mapper.MainMapper">
+	<!-- DISPLAY_NAME : insertOnly -->
+	<select id="getMacAddrOfDay" parameterType="String"
+		resultType="String">
+		/*[ 10시부터 23시 까지 중복 되지 않은 맥 어드레스 조회 (is_connect=N) ]*/
+		SELECT DISTINCT mac_addr FROM visitor_hist_tbl_may where is_connect='N' and
+		DATE_FORMAT(w_date, '%Y-%m-%d') = #{yearMonthDay} and HOUR(w_date)
+		between 10 and 23
+	</select>
+
+	<select id="getIsConnectMacAddrOfDay" parameterType="String"
+		resultType="String">
+		/*[ 10시부터 23시 까지 중복 되지 않은 맥 어드레스 조회 (is_connect=Y)]*/
+		SELECT DISTINCT mac_addr FROM visitor_hist_tbl_may where is_connect='Y' and
+		DATE_FORMAT(w_date, '%Y-%m-%d') = #{yearMonthDay} and HOUR(w_date)
+		between 10 and 23
+	</select>
+
+	<select id="getResidenceDayTimeByMacAddr"
+		parameterType="hashmap" resultType="Integer">
+		/* [ 10시부터 23시 까지 mac_addr 기준 체류 시간 조회 (일별) ] */
+		SELECT ROUND(((unix_timestamp(max(w_date)) - unix_timestamp(min(w_date)))) /
+		60) AS diff_min from visitor_hist_tbl_may
+		where mac_addr=#{macAddr} and DATE_FORMAT(w_date, '%Y-%m-%d') =
+		#{yearMonthDay} and HOUR(w_date) between 10 and 23
+	</select>
+
+	<select id="getMacAddrOfDayInFloor" parameterType="hashmap"
+		resultType="String">
+		/*[ 10시부터 23시 까지 층별 중복 되지 않은 맥 어드레스 조회 (is_connect=N) ]*/
+		SELECT DISTINCT vhtm.mac_addr FROM (SELECT * FROM devices_tbl dt where
+		dt.location_idx=#{locationIdx}) AS rs LEFT JOIN visitor_hist_tbl_may
+		vhtm ON rs.idx = vhtm.device_idx
+		where vhtm.is_connect='N' and DATE_FORMAT(vhtm.w_date, '%Y-%m-%d')
+		=#{yearMonthDay} and HOUR(vhtm.w_date) between 10 and 23
+	</select>
+
+	<select id="getIsConnectMacAddrOfDayInFloor"
+		parameterType="hashmap" resultType="String">
+		/*[ 10시부터 23시 까지 층별 중복 되지 않은 맥 어드레스 조회 (is_connect=Y)]*/
+		SELECT DISTINCT vhtm.mac_addr FROM (SELECT * FROM devices_tbl dt where
+		dt.location_idx=#{locationIdx}) AS rs LEFT JOIN visitor_hist_tbl_may
+		vhtm ON rs.idx = vhtm.device_idx
+		where vhtm.is_connect='Y' and DATE_FORMAT(vhtm.w_date, '%Y-%m-%d')
+		=#{yearMonthDay} and HOUR(vhtm.w_date) between 10 and 23
+	</select>
+
+
+</mapper>
